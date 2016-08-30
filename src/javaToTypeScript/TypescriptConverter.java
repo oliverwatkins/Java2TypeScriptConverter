@@ -83,6 +83,8 @@ public class TypescriptConverter {
 					if (bodyDeclaration instanceof MethodDeclaration) {
 						
 						
+						
+						
 						MethodDeclaration md = (MethodDeclaration)bodyDeclaration;
 						List<Parameter> parameters = md.getParameters();
 						String name = md.getName();

@@ -64,7 +64,8 @@ public class Converter {
 			TypescriptConverter.appendConstructors(cu, sb);
 			
 			TypescriptConverter.appendMethods(cu, sb);
-			
+
+			sb.append("};");
 			
 			List<Node> childs = cu.getChildrenNodes();
 
@@ -80,10 +81,6 @@ public class Converter {
 					List<BodyDeclaration> members = ((ClassOrInterfaceDeclaration) node).getMembers();
 
 					for (BodyDeclaration bodyDeclaration : members) {
-						System.out.println("member : ");
-						System.out.println(bodyDeclaration);
-						System.out.println(" / member");
-						
 						sb.append(bodyDeclaration.toString());
 					}
 					
@@ -94,12 +91,7 @@ public class Converter {
 							NameExpr n = (NameExpr)node2;
 							
 							sb.append(n.toString());
-							
-//							node2
-							
 						}
-						
-//						System.out.println("node2 = " + node2);
 					}
 				}
 			}
@@ -127,6 +119,7 @@ public class Converter {
 
 		} catch(Exception e) {
 			System.err.println("Error parsing this file " + f);
+			throw e;
 			
 			
 		}

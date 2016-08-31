@@ -83,7 +83,9 @@ public class Converter {
 
 			sb.append("};");
 			
-			File file = new File(Converter.destPath + "\\" + f.getName());
+			String fileName = f.getName().substring(0, f.getName().indexOf(".")) + ".ts";
+			
+			File file = new File(Converter.destPath + "\\" + fileName);
 			
 			file.getParentFile().mkdirs();
 			file.createNewFile();

@@ -26,6 +26,10 @@ public class Converter {
 	public static String destPath = "C:\\Users\\oliver\\Google Drive\\dev\\iceberg_charts2\\src\\test\\typeScriptTest";
 
 	public static void main(String[] args) throws Exception {
+		convert();
+	}
+	
+	public static void convert() throws Exception {
 
 		File file = new File(Converter.path);
 
@@ -42,8 +46,21 @@ public class Converter {
 
 		}
 		System.out.println("FINISHED PARSING!!!");
-
 	}
+	
+	public static void convert(String path) throws Exception {
+		File f = new File(path);
+		parseFile(f);
+	}
+	
+	public static void convert(String path, String string2) throws Exception {
+		File f = new File(path);
+		
+		Converter.destPath = string2;
+		parseFile(f);
+		
+	}
+	
 
 	private static void parseFile(File f) throws Exception {
 
@@ -67,7 +84,7 @@ public class Converter {
 			sb.append("};");
 			
 			File file = new File(Converter.destPath + "\\" + f.getName());
-
+			
 			file.getParentFile().mkdirs();
 			file.createNewFile();
 			
@@ -81,8 +98,6 @@ public class Converter {
 		} catch(Exception e) {
 			System.err.println("Error parsing this file " + f);
 			throw e;
-			
-			
 		}
 		finally {
 			in.close();
@@ -111,5 +126,7 @@ public class Converter {
 			super.visit(n, arg);
 		}
 	}
+
+
 
 }

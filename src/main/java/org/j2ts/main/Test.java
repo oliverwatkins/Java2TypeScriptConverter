@@ -1,4 +1,4 @@
-package javaToTypeScript;
+package org.j2ts.main;
 
 import java.io.FileInputStream;
 

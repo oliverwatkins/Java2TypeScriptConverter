@@ -1,4 +1,4 @@
-package javaToTypeScript;
+package org.j2ts.main;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -56,7 +56,6 @@ public class Converter {
 			// parse the file
 			cu = JavaParser.parse(in);
 			
-			
 			TypescriptConverter.appendClassOrInterfaceName(cu, sb);
 			
 			TypescriptConverter.appendFields(cu, sb);
@@ -67,40 +66,6 @@ public class Converter {
 
 			sb.append("};");
 			
-			List<Node> childs = cu.getChildrenNodes();
-
-			sb.append("" + f.getName());
-			
-			for (Node node : childs) {
-
-
-				//ignore imports??
-				if (node instanceof ClassOrInterfaceDeclaration) {
-					List<Node> kiddies = node.getChildrenNodes();
-					
-					List<BodyDeclaration> members = ((ClassOrInterfaceDeclaration) node).getMembers();
-
-					for (BodyDeclaration bodyDeclaration : members) {
-						sb.append(bodyDeclaration.toString());
-					}
-					
-					for (Node node2 : kiddies) {
-						
-						if (node2 instanceof NameExpr) {
-							
-							NameExpr n = (NameExpr)node2;
-							
-							sb.append(n.toString());
-						}
-					}
-				}
-			}
-			
-//			// visit and print the methods names
-//			MethodVisitor mv = new MethodVisitor();
-//			
-//			mv.visit(cu, null);
-
 			File file = new File(Converter.destPath + "\\" + f.getName());
 
 			file.getParentFile().mkdirs();
@@ -112,10 +77,6 @@ public class Converter {
 			writer.write(sb.toString());
 			
 			writer.close();
-//			file.
-
-//			System.out.println("in " + in);
-
 
 		} catch(Exception e) {
 			System.err.println("Error parsing this file " + f);

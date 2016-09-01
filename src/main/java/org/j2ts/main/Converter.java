@@ -31,7 +31,6 @@ public class Converter {
 	
 	public static void convert() throws Exception {
 
-		File file = new File(Converter.path);
 
 		String[] exts = { "java" };
 
@@ -69,6 +68,8 @@ public class Converter {
 		StringBuffer sb = new StringBuffer();
 		try {
 
+			
+			
 			CompilationUnit cu;
 			// parse the file
 			cu = JavaParser.parse(in);

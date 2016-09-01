@@ -15,6 +15,7 @@ import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.stmt.IfStmt;
+import com.github.javaparser.ast.stmt.ReturnStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.stmt.WhileStmt;
 import com.github.javaparser.ast.type.Type;
@@ -42,33 +43,14 @@ public class TypescriptConverter {
 
 			// ignore imports??
 			if (node instanceof ClassOrInterfaceDeclaration) {
-				List<Node> kiddies = node.getChildrenNodes();
 
-				List<BodyDeclaration> members = ((ClassOrInterfaceDeclaration) node)
-						.getMembers();
+				List<BodyDeclaration> members = ((ClassOrInterfaceDeclaration) node).getMembers();
 
 				for (BodyDeclaration bodyDeclaration : members) {
 
 					if (bodyDeclaration instanceof FieldDeclaration) {
 
-						FieldDeclaration fd = (FieldDeclaration) bodyDeclaration;
-						fd.getType();
-						List<VariableDeclarator> vds = fd.getVariables();
-
-						sb.append("\t");
-						sb.append(vds.get(0).toString().trim());
-						sb.append(":");
-						sb.append(getType(fd.getType()));
-						sb.append(";");
-						sb.append("\n");
-
-						for (VariableDeclarator variableDeclarator : vds) {
-
-							//TODO for now we just take the first variable.
-							//currently cannot deal with things like "int var1, var2;"
-						}
-
-						sb.append(" \n ");
+						processField(sb, bodyDeclaration);
 						// sb.append(bodyDeclaration.toString());
 					}
 				}
@@ -76,7 +58,7 @@ public class TypescriptConverter {
 			}
 		}
 	}
-
+	
 	public static void appendMethods(CompilationUnit cu, StringBuffer sb) {
 
 		List<Node> childs = cu.getChildrenNodes();
@@ -93,31 +75,120 @@ public class TypescriptConverter {
 
 					if (bodyDeclaration instanceof MethodDeclaration) {
 						
-						MethodDeclaration md = (MethodDeclaration) bodyDeclaration;
-						List<Parameter> parameters = md.getParameters();
-						String name = md.getName();
-						BlockStmt bs = md.getBody();
+						processMethod(sb, (MethodDeclaration)bodyDeclaration);
+					}
+				}
+			}
+		}
+	}
+	
+	public static void appendConstructors(CompilationUnit cu, StringBuffer sb) {
 
-						StringBuffer parameterString = createParameterString(
-								name, parameters);
+		List<Node> childs = cu.getChildrenNodes();
 
-						sb.append("\t" + name + parameterString + "{");
+		for (Node node : childs) {
 
-						sb.append("\n");
+			// ignore imports??
+			if (node instanceof ClassOrInterfaceDeclaration) {
+
+				List<BodyDeclaration> members = ((ClassOrInterfaceDeclaration) node)
+						.getMembers();
+
+				for (BodyDeclaration bodyDeclaration : members) {
+
+					if (bodyDeclaration instanceof ConstructorDeclaration) {
 						
-						int indentationLevel = 2;
-						
-						processBlockStmt(bs, sb, indentationLevel);
+						processConstructor(sb, bodyDeclaration);
 
-						sb.append("\n");
-						sb.append("\t}");
-						sb.append("\n");
 					}
 				}
 
 			}
 		}
+	}
 
+	private static void processField(StringBuffer sb,
+			BodyDeclaration bodyDeclaration) {
+		FieldDeclaration fd = (FieldDeclaration) bodyDeclaration;
+		fd.getType();
+		List<VariableDeclarator> vds = fd.getVariables();
+
+		sb.append("\t");
+		sb.append(vds.get(0).toString().trim());
+		sb.append(":");
+		sb.append(getType(fd.getType()));
+		sb.append(";");
+		sb.append("\n");
+
+		for (VariableDeclarator variableDeclarator : vds) {
+
+			//TODO for now we just take the first variable.
+			//currently cannot deal with things like : "int var1, var2;"
+		}
+
+		sb.append(" \n ");
+	}
+
+
+
+	private static void processMethod(StringBuffer sb,
+			MethodDeclaration bodyDeclaration) {
+		int indentationLevel = 1;
+		
+		MethodDeclaration md = bodyDeclaration;
+		List<Parameter> parameters = md.getParameters();
+		String name = md.getName();
+		BlockStmt bs = md.getBody();
+
+		StringBuffer parameterString = createParameterString(
+				name, parameters);
+
+		String returnStr = "";
+
+		if (md.getType() != null) {
+			returnStr = getType(md.getType());
+		}
+
+		sb.append("\t" + name + parameterString + " " + returnStr + "{");
+
+		sb.append("\n");
+		
+		processBlockStmt(bs, sb, indentationLevel);
+
+		sb.append("\n");
+		sb.append("\t}");
+		sb.append("\n");
+	}
+	
+
+
+	private static void processConstructor(StringBuffer sb,
+			BodyDeclaration bodyDeclaration) {
+		int indentationLevel = 1;
+		
+		ConstructorDeclaration md = (ConstructorDeclaration) bodyDeclaration;
+		List<Parameter> parameters = md.getParameters();
+		String name = md.getName();
+		BlockStmt bs = md.getBlock();
+
+		StringBuffer parameterString = createParameterString(
+				name, parameters);
+
+		sb.append("\n");
+		sb.append("\t");
+		sb.append("constructor");
+
+		sb.append(parameterString);
+		sb.append("{");
+
+		sb.append("\n");
+		processBlockStmt(bs, sb, indentationLevel);
+//		appendStatements(sb, bs, indentationLevel);
+		sb.append("\n");
+		sb.append("\t");
+		sb.append("}");
+		sb.append("\n");
+		sb.append("\n");
 	}
 	
 	private static String indent(int indentationLevel) {
@@ -145,8 +216,20 @@ public class TypescriptConverter {
 		}
 	}
 
-	private static void processWhileStmt(Statement stmt, StringBuffer sb, int indentationLevel) {
-		// TODO Auto-generated method stub
+	private static void processWhileStmt(WhileStmt stmt, StringBuffer sb, int indentationLevel) {
+		
+		System.out.println("Processing IF statement");
+		
+		Expression condition = stmt.getCondition();
+		Statement bodyStmt = stmt.getBody();
+		
+		sb.append(indent(indentationLevel) + "while(");
+		sb.append(condition);
+		sb.append("){");
+		sb.append("\n");
+		processStatement(bodyStmt, sb, indentationLevel);
+		sb.append(indent(indentationLevel) + "}");
+		sb.append("\n");
 		
 	}
 
@@ -181,11 +264,16 @@ public class TypescriptConverter {
 			processIfStmt((IfStmt)statement, sb, indentationLevel);
 		} else if (statement instanceof WhileStmt)  {
 			processWhileStmt((WhileStmt)statement, sb, indentationLevel);
+		} else if (statement instanceof ReturnStmt)  {
+			processReturnStmt((ReturnStmt)statement, sb, indentationLevel);
 		}
+		
 		
 	}
 
 	
+
+
 	private static void processBlockStmt(BlockStmt blockStmt,
 			StringBuffer sb, int indentationLevel) {
 		System.out.println("BLOCK statmemt");
@@ -206,6 +294,14 @@ public class TypescriptConverter {
 		sb.append(indent(indentationLevel) + statement.toString());
 		sb.append("\n");
 	}
+	
+	private static void processReturnStmt(ReturnStmt statement,
+			StringBuffer sb, int indentationLevel) {
+		sb.append(indent(indentationLevel) + statement.toString());
+		sb.append("\n");
+		
+	}
+	
 
 	private static StringBuffer createParameterString(String name,
 			List<Parameter> parameters) {
@@ -256,52 +352,6 @@ public class TypescriptConverter {
 		return returnVal;
 	}
 
-	public static void appendConstructors(CompilationUnit cu, StringBuffer sb) {
 
-		List<Node> childs = cu.getChildrenNodes();
-
-		for (Node node : childs) {
-
-			// ignore imports??
-			if (node instanceof ClassOrInterfaceDeclaration) {
-
-				List<BodyDeclaration> members = ((ClassOrInterfaceDeclaration) node)
-						.getMembers();
-
-				for (BodyDeclaration bodyDeclaration : members) {
-
-					if (bodyDeclaration instanceof ConstructorDeclaration) {
-						
-						int indentationLevel = 2;
-						
-						ConstructorDeclaration md = (ConstructorDeclaration) bodyDeclaration;
-						List<Parameter> parameters = md.getParameters();
-						String name = md.getName();
-						BlockStmt bs = md.getBlock();
-
-						StringBuffer parameterString = createParameterString(
-								name, parameters);
-
-						sb.append("\n");
-						sb.append("\t");
-						sb.append("constructor");
-
-						sb.append(parameterString);
-						sb.append("{");
-
-						sb.append("\n");
-						appendStatements(sb, bs, indentationLevel);
-						sb.append("\n");
-						sb.append("\t");
-						sb.append("}");
-						sb.append("\n");
-						sb.append("\n");
-
-					}
-				}
-
-			}
-		}
-	}
 
 }

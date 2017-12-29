@@ -267,11 +267,7 @@ public class TypescriptConverter {
 		} else if (statement instanceof ReturnStmt)  {
 			processReturnStmt((ReturnStmt)statement, sb, indentationLevel);
 		}
-		
-		
 	}
-
-	
 
 
 	private static void processBlockStmt(BlockStmt blockStmt,
@@ -299,7 +295,6 @@ public class TypescriptConverter {
 			StringBuffer sb, int indentationLevel) {
 		sb.append(indent(indentationLevel) + statement.toString());
 		sb.append("\n");
-		
 	}
 	
 

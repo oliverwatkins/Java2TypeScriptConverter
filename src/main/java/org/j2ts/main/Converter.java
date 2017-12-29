@@ -6,116 +6,167 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.util.Iterator;
-import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.body.BodyDeclaration;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
 public class Converter {
 
-	public static String path = "C:\\Users\\oliver\\Google Drive\\dev\\iceberg_charts2\\src\\main";
+//	public static String path = "C:\\Users\\oliver\\Google Drive\\dev\\iceberg_charts2\\src\\main";
 
-	public static String destPath = "C:\\Users\\oliver\\Google Drive\\dev\\iceberg_charts2\\src\\test\\typeScriptTest";
+	public static String destPath = "c:\\initial\\dir\\generated\\usually\\here";
 
-	public static void main(String[] args) throws Exception {
-		convert();
-	}
+	private static String initialPath = "c:\\initial\\dir";
+
+//	public static void main(String[] args) throws Exception {
+//	}
+
+
+//	public static void convert(String path) throws Exception {
+//		File f = new File(path);
+//		parseFile(f);
+//	}
 	
-	public static void convert() throws Exception {
 
 
-		String[] exts = { "java" };
+	public static void convert(String path, String destPath) throws Exception {
+		File f = new File(path);
 
-		Iterator it = FileUtils.iterateFiles(new File(path), exts, true);
-		while (it.hasNext()) {
-
-			File f = (File) it.next();
-
-			CompilationUnit cu;
-
+		deleteDestinationPath(new File(destPath));
+		
+		Converter.initialPath = path;
+		Converter.destPath = destPath;
+		
+		if (f.isDirectory()) { // iterate
+			parseDirectory(f);
+		} else {
 			parseFile(f);
-
 		}
-		System.out.println("FINISHED PARSING!!!");
 	}
 	
-	public static void convert(String path) throws Exception {
-		File f = new File(path);
-		parseFile(f);
+	
+	public static void deleteDestinationPath(File file) throws Exception {
+		if (file.isDirectory()) { // iterate
+			File[] directoryListing = file.listFiles();
+			if (directoryListing != null) {
+				for (File child : directoryListing) {
+					child.delete();
+				}
+			}
+			file.delete();
+		}else {
+			file.delete();
+		}
 	}
 	
-	public static void convert(String path, String string2) throws Exception {
-		File f = new File(path);
-		
-		Converter.destPath = string2;
-		parseFile(f);
-		
-	}
 	
+	private static void parseDirectory(File f) throws Exception {
+		File[] directoryListing = f.listFiles();
+		if (directoryListing != null) {
+			for (File child : directoryListing) {
+				if (child.isDirectory()) {
+					parseDirectory(child);
+					System.out.println(" child.isDirectory() " + child.isDirectory() + " " + child);
+				}else {
+					parseFile(child);
+				}
+			}
+		}
+	}
 
+	/**
+	 * process a file.
+	 * @param f
+	 * @throws Exception
+	 */
 	private static void parseFile(File f) throws Exception {
-
-		FileInputStream in = new FileInputStream(f);
 		
+		System.out.println("parsing file : " + f);
+		
+		FileInputStream in = new FileInputStream(f);
+
 		StringBuffer sb = new StringBuffer();
 		try {
 
-			
-			
 			CompilationUnit cu;
 			// parse the file
 			cu = JavaParser.parse(in);
-			
+
 			TypescriptConverter.appendClassOrInterfaceName(cu, sb);
-			
+
 			TypescriptConverter.appendFields(cu, sb);
-			
+
 			TypescriptConverter.appendConstructors(cu, sb);
-			
+
 			TypescriptConverter.appendMethods(cu, sb);
 
 			sb.append("};");
+
 			
-			String fileName = f.getName().substring(0, f.getName().indexOf(".")) + ".ts";
+			String javaFileName = f.getName();
+			String typeScriptFileName = f.getName().substring(0, f.getName().indexOf(".")) + ".ts";
 			
-			File file = new File(Converter.destPath + "\\" + fileName);
+
+			//subfolder with filename
+			String subFolderBit = f.getPath().substring(initialPath.length(), f.getPath().length());
 			
+//			System.out.println(" subFolderBit 1 with filename " + subFolderBit);
+			
+			if (subFolderBit.equals("")) {
+				subFolderBit = "\\";
+			}else {
+				//snip off filename
+				subFolderBit = subFolderBit.substring(0, subFolderBit.length() - javaFileName.length());
+			}
+			
+			System.out.println(" subFolderBit 2 without filename " + subFolderBit);
+			
+					
+			System.out.println(" child.isDirectory()  " + typeScriptFileName);
+
+//			System.out.println(" f.getAbsolutePath() " + f.getAbsolutePath());
+//			System.out.println(" f.getCanonicalPath()" + f.getCanonicalPath());
+			System.out.println(" f.getPath()" + f.getPath());
+			
+			
+			
+			System.out.println(" destPath " + Converter.destPath);
+			System.out.println(" intialPath " + Converter.initialPath);
+			
+			
+			File file = new File(Converter.destPath + subFolderBit + typeScriptFileName);
+
 			file.getParentFile().mkdirs();
 			file.createNewFile();
-			
+
 			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
-			          new FileOutputStream(file), "utf-8"));
-			    
+					new FileOutputStream(file), "utf-8"));
+
 			writer.write(sb.toString());
-			
+
 			writer.close();
 
-		} catch(Exception e) {
+		} catch (Exception e) {
 			System.err.println("Error parsing this file " + f);
 			throw e;
-		}
-		finally {
+		} finally {
 			in.close();
 		}
 	}
 
 	private static void appendFields(CompilationUnit cu, StringBuffer sb) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	private static void appendClassOrInterfaceName(CompilationUnit cu,
 			StringBuffer sb) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	private static class MethodVisitor extends VoidVisitorAdapter {
@@ -125,11 +176,9 @@ public class Converter {
 			// here you can access the attributes of the method.
 			// this method will be called for all methods in this
 			// CompilationUnit, including inner class methods
-//			System.out.println(n.getName());
+			// System.out.println(n.getName());
 			super.visit(n, arg);
 		}
 	}
-
-
 
 }

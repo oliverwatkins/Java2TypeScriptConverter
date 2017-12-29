@@ -1,4 +1,3 @@
-
 public class Test2_src {
 
 	public int aField;

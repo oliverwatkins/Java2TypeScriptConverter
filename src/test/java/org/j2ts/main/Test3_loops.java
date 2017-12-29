@@ -13,6 +13,7 @@ public class Test3_loops {
 		File f = new File("");
 		System.out.println("f.getAbsolutePath() " + f.getCanonicalPath());
 		
-		Converter.convert("src\\test\\resource\\Test3_src.java", "src\\test\\resource\\generated");
+		Converter.convert(TestUtils.RESOURCE_FOLDER + "singleClassTests\\Test3_loops_src.java", 
+				TestUtils.RESOURCE_FOLDER_DESTINATION + "singleClassTests\\generated");
 	}
 }

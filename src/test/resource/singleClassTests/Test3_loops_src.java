@@ -1,10 +1,9 @@
-
-public class Test3_src {
+public class Test3_loops_src {
 
 //	public int aField;
 //	public String aString;
 	
-	public Test3_src(Integer max) {
+	public Test3_loops_src(Integer max) {
 
 		String someRandomStatement = "";
 		

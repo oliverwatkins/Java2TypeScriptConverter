@@ -4,7 +4,7 @@ import java.io.File;
 
 import org.junit.Test;
 
-public class BasicTest {
+public class Basic_Test {
 
 	@Test
 	public void myFirstTest() throws Exception {
@@ -13,6 +13,7 @@ public class BasicTest {
 		File f = new File("");
 		System.out.println("f.getAbsolutePath() " + f.getCanonicalPath());
 		
-		Converter.convert("src\\test\\resource\\BasicTest_src.java", "src\\test\\resource\\generated");
+		Converter.convert(TestUtils.RESOURCE_FOLDER + "singleClassTests\\BasicTest_src.java", 
+				TestUtils.RESOURCE_FOLDER_DESTINATION + "singleClassTests\\generated");
 	}
 }
